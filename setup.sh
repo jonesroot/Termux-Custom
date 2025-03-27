@@ -1,18 +1,31 @@
 #!/usr/bin/bash
 
 progress_bar() {
-    local duration=$1
-    local bar_length=40
     local progress=0
+    local bar_length=40
+    local percent=0
+    local last_percent=0
 
     while [ $progress -le $bar_length ]; do
-        local percent=$((progress * 100 / bar_length))
-        local bar=$(printf "%-${bar_length}s" "#" | tr ' ' '#')
-        printf "\r[\033[32m%-${bar_length}s\033[0m] %d%%" "${bar:0:$progress}" "$percent"
-        sleep $((duration / bar_length))
+        percent=$((progress * 100 / bar_length))
+        if [ "$percent" -gt "$last_percent" ]; then
+            printf "\r[\033[32m%-${bar_length}s\033[0m] %d%%" "${bar:0:$progress}" "$percent"
+            last_percent=$percent
+        fi
+        sleep 0.1
         ((progress++))
     done
     echo ""
+}
+
+real_time_process() {
+    local process_duration=$1
+    local progress_step=$((process_duration / 100))
+
+    for i in $(seq 1 100); do
+        sleep $progress_step
+        progress_bar $i
+    done
 }
 
 update_repository() {
@@ -24,8 +37,7 @@ update_repository() {
 
 install_dependencies() {
     echo -e "\n\033[33mUpdating package lists...\033[0m"
-    progress_bar 3
-    apt update && apt upgrade -y >/dev/null 2>&1
+    real_time_process 5
 
     echo -e "\n\033[32mInstalling Bash dependencies...\033[0m"
     total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/bash.txt")
@@ -34,7 +46,7 @@ install_dependencies() {
     while IFS= read -r package; do
         ((current_package++))
         echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-        progress_bar 2
+        real_time_process 3
         pkg install "$package" -y >/dev/null 2>&1
     done < "$HOME/Termux-Custom/requirements/bash.txt"
 
@@ -45,8 +57,8 @@ install_dependencies() {
     while IFS= read -r package; do
         ((current_package++))
         echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-        progress_bar 2
-        pip install "$package" >/dev/null 2>&1
+        real_time_process 3
+        pip3 install "$package" >/dev/null 2>&1
     done < "$HOME/Termux-Custom/requirements/python.txt"
 }
 
@@ -59,7 +71,7 @@ setup_files() {
         ((current_file++))
         filename=$(basename "$file" .sh)
         echo -e "\033[33mCopying: $filename ($current_file/$total_files)...\033[0m"
-        progress_bar 2
+        real_time_process 2
         cp "$file" "$PREFIX/etc/$filename"
         chmod +x "$PREFIX/etc/$filename"
     done
@@ -70,7 +82,7 @@ setup_files() {
 clear
 echo -e "\033[32m{──────────────────────────────────────────────}"
 echo -e "\033[33mInstalling All Required Packages! Please Wait...\033[0m"
-progress_bar 5
+real_time_process 5
 install_dependencies
 setup_files
 
