@@ -37,30 +37,19 @@ progress_bar() {
     clear
 }
 
-# Simulate real-time process updates
-real_time_process() {
-    local duration=$1
-    for i in $(seq 1 $duration); do
-        sleep 0.1
-        echo -ne "\rProcessing... $((i * 100 / duration))%"
-    done
-    echo -e "\nDone!"
-}
-
 # Function to install dependencies
 install_dependencies() {
     echo -e "\n\033[33mUpdating package lists...\033[0m"
-    real_time_process 5
-
     echo -e "\n\033[32mInstalling dependencies...\033[0m"
+    TEMP_DIR="$(mktemp)"
     total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/bash.txt")
     current_package=0
 
     while IFS= read -r package; do
         ((current_package++))
         echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-        progress_bar $$ "Installing $package" /tmp/pkg_install.log
-        pkg install "$package" -y >/dev/null 2>&1
+        progress_bar $$ "Installing $package" $TEMP_DIR
+        pkg install "$package" -y >$TEMP_DIR 2>&1
     done < "$HOME/Termux-Custom/requirements/bash.txt"
 
     total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/python.txt")
@@ -69,8 +58,8 @@ install_dependencies() {
     while IFS= read -r package; do
         ((current_package++))
         echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-        progress_bar $$ "Installing $package" /tmp/pkg_install.log
-        pip install "$package" >/dev/null 2>&1
+        progress_bar $$ "Installing $package" $TEMP_DIR
+        pip3 install "$package" >$TEMP_DIR 2>&1
     done < "$HOME/Termux-Custom/requirements/python.txt"
 }
 
@@ -84,7 +73,6 @@ setup_files() {
         ((current_file++))
         filename=$(basename "$file" .sh)
         echo -e "\033[33mCopying: $filename ($current_file/$total_files)...\033[0m"
-        real_time_process 2
         cp "$file" "$PREFIX/etc/$filename"
         chmod +x "$PREFIX/etc/$filename"
     done
@@ -96,7 +84,6 @@ setup_files() {
 clear
 echo -e "\033[32m{──────────────────────────────────────────────}"
 echo -e "\033[33mInstalling All Required Packages! Please Wait...\033[0m"
-real_time_process 5
 install_dependencies
 setup_files
 
