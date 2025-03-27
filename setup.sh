@@ -1,6 +1,5 @@
 #!/usr/bin/bash
 
-# Define Colors
 RED="$(printf '\033[31m')"
 GREEN="$(printf '\033[32m')"
 ORANGE="$(printf '\033[33m')"
@@ -20,7 +19,6 @@ BLACKBG="$(printf '\033[40m')"
 DEFAULT_FG="$(printf '\033[39m')"
 DEFAULT_BG="$(printf '\033[49m')"
 
-# Function to show a real-time progress bar
 progress_bar() {
     pid=$1
     message=$2
@@ -37,14 +35,14 @@ progress_bar() {
     clear
 }
 
-# Function to install dependencies
 install_dependencies() {
     echo -e "\n\033[33mUpdating package lists...\033[0m"
     echo -e "\n\033[32mInstalling dependencies...\033[0m"
     TEMP_DIR="$(mktemp)"
+    
+    # Install bash dependencies
     total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/bash.txt")
     current_package=0
-
     while IFS= read -r package; do
         ((current_package++))
         echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
@@ -52,9 +50,9 @@ install_dependencies() {
         pkg install "$package" -y >$TEMP_DIR 2>&1
     done < "$HOME/Termux-Custom/requirements/bash.txt"
 
+    # Install Python dependencies
     total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/python.txt")
     current_package=0
-
     while IFS= read -r package; do
         ((current_package++))
         echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
@@ -63,7 +61,6 @@ install_dependencies() {
     done < "$HOME/Termux-Custom/requirements/python.txt"
 }
 
-# Function to set up files
 setup_files() {
     echo -e "\n\033[32mSetting up files and permissions...\033[0m"
     total_files=$(ls -1 "$HOME/Termux-Custom/"*.sh | wc -l)
@@ -92,7 +89,6 @@ echo -e "\033[33m]────────────────────�
 
 termux-setup-storage
 
-# Ask if user wants to update the repository
 read -p "Do you want to update the repository now? (y/n): " choice
 if [ "$choice" = "y" ]; then
     update_repository
