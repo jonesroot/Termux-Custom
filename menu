@@ -1,0 +1,328 @@
+#!/bin/bash
+
+
+shopt -s checkwinsize histappend histverify extglob nullglob globstar autocd
+export HISTCONTROL=ignoreboth
+export HISTSIZE=1000
+export HISTFILESIZE=2000
+export WINTER_KEY="239b83cba3e5b8945dcce331460b81b9"
+export MY_CITY="Jakarta"
+export MANPAGER="less -R --use-color -Dd+g -Du+b"
+export VISUAL="vim"
+export USER=$USER_NAME
+export BASH_IDE_LOG_LEVEL=debug
+export DEFAULT_LOG_LEVEL=debug
+export ETC="/data/data/com.termux/files/usr/etc"
+
+PROMPT_DIRTRIM=2
+PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+PS1='${BOLD}${BLUE}╭──[ ${GREEN}${USER}@${CYAN}$(basename "$PWD") ]\n${BLUE}╰──>${RESET} '
+e="nano"
+USER_NAME="Lucifer"
+BOLD=$(tput bold)
+RESET=$(tput sgr0)
+RED=$(tput setaf 196)
+GREEN=$(tput setaf 24)
+YELLOW=$(tput setaf 226)
+BLUE=$(tput setaf 21)
+CYAN=$(tput setaf 51)
+WHITE=$(tput setaf 195)
+
+if ! shopt -oq posix; then
+    if [ -f /data/data/com.termux/files/usr/share/bash-completion/less_completion ]; then
+        . /data/data/com.termux/files/usr/share/bash-completion/less_completion
+    fi
+fi
+
+if [ -x /usr/bin/dircolors ]; then
+    if test -r ~/.dircolors; then
+        eval "$(dircolors -b ~/.dircolors)"
+    else
+        eval "$(dircolors -b)"
+    fi
+    alias grep="grep --color=auto"
+    alias fgrep="fgrep --color=auto"
+    alias egrep="egrep --color=auto"
+fi
+
+alias up="apt update -y && apt clean && apt install -f && apt full-upgrade -y && apt autoremove -y"
+alias timenow='date +"%T"'
+alias datenow='date +"%d-%m-%Y"'
+alias untar="tar -zxvf "
+alias wget="wget -c "
+alias lm="ls | more"
+alias l="ls -CF"
+la_cmd() {
+    local dirname=$(basename "$PWD")
+    echo -e "${BOLD}${CYAN}┌── 📂 Directory -\n${CYAN}└─ ${YELLOW}$dirname${RESET}"
+    eza --icons=always -T --level=1 --group-directories-first -a -w "$(tput cols)"
+}
+alias la="la_cmd"
+lt_cmd() {
+    local dirname=$(basename "$PWD")
+    echo -e "${BOLD}${CYAN}┌── 📂 Directory -\n${CYAN}└─ ${YELLOW}$dirname${RESET}"
+    eza --icons --tree --level=2 -w "$(tput cols)"
+}
+alias lt="lt_cmd"
+alias lsn="ls | cat -n"
+ls_cmd() {
+    local dirname=$(basename "$PWD")
+    echo -e "${BOLD}${CYAN}┌── 📂 Directory -\n${CYAN}└─ ${YELLOW}$dirname${RESET}"
+    eza --icons --tree --level=1 --group-directories-first -w "$(tput cols)"
+}
+alias ls="ls_cmd"
+alias menu="main_menu"
+alias mkdir="mkdir -p -v"
+alias cp="cp --preserve=all"
+alias cpv="cp --preserve=all -v"
+alias cpr="cp --preserve=all -R"
+alias cpp="rsync -ahW --info=progress2"
+alias c="clear"
+alias h="history"
+alias x="exit"
+alias term_size='echo "Rows=$(tput lines) Cols=$(tput cols)"'
+
+########################################################
+
+if [ -x /data/data/com.termux/files/usr/libexec/termux/command-not-found ]; then
+    command_not_found_handle() {
+        /data/data/com.termux/files/usr/libexec/termux/command-not-found "$1"
+    }
+fi
+
+[ -r /data/data/com.termux/files/usr/share/bash-completion/less_completion ] &&
+    . /data/data/com.termux/files/usr/share/bash-completion/less_completion
+
+########################################################
+
+spinner() {
+    pid=$1
+    message=$2
+    TEMP_DIR="$(mktemp)"
+    spin="-\|/"
+    i=0
+    while kill -0 "$pid" 2>$TEMP_DIR; do
+        i=$(((i + 1) % 4))
+        printf "\r${spin:$i:1} $message"
+        sleep 0.1
+    done
+    printf "\r$message ${GREEN}Done!\n"
+    sleep 2
+    clear
+}
+
+install_necessary_packages() {
+    clear
+    echo -e "${BOLD}${YELLOW}Checking and Installing Required Packages...${RESET}"
+    TEMP_DIR="$(mktemp)"
+    NECESSARY_PACKAGES=("eza" "sshpass" "neofetch" "jq" "speedtest-cli" "screen" "git" "rsync" "curl" "ruby" "nnn" "curl" "wget" "git" "ruby")
+
+    if ! command -v lolcat >$TEMP_DIR 2>&1; then
+        clear
+        echo -e "${BOLD}${YELLOW}Installing lolcat...${RESET}"
+        gem install lolcat >$TEMP_DIR 2>&1 &
+        spinner $! "Process Update & Upgrade Packages .."
+        echo -e "${BOLD}${GREEN}lolcat installed successfully!${RESET}"
+        sleep 1
+        clear
+    fi
+    for package in "${NECESSARY_PACKAGES[@]}"; do
+        if ! command -v "$package" >$TEMP_DIR 2>&1; then
+            clear
+            echo -e "${BOLD}${YELLOW}Installing ${package}...${RESET}"
+            pkg install -y "$package" >$TEMP_DIR 2>&1 &
+            wait $!
+            echo -e "${BOLD}${GREEN}${package} installed successfully!${RESET}"
+            sleep 1
+            clear
+        fi
+    done
+    clear
+    echo -e "${BOLD}${GREEN}All required packages are installed!${RESET}"
+    sleep 2
+    clear
+}
+
+network_speed() {
+    clear
+    echo -e "${BOLD}${YELLOW}Running SpeedTest, Please Wait ..${RESET}"
+    TEMP_DIR=$(mktemp)
+    speedtest-cli --share --json --timeout 3 >$TEMP_DIR 2>&1 &
+    spinner $! "Network Connection Check Process .."
+    if [[ ! -s $TEMP_DIR ]] || grep -q 'ERROR' $TEMP_DIR; then
+        echo -e "${BOLD}${RED}SpeedTest failed.${RESET}"
+        rm -f $TEMP_DIR
+        read -p "${BOLD}{GREY}Press Enter to continue ..${RESET}"
+    fi
+
+    SPEED_INFO=$(cat $TEMP_DIR)
+    DOWNLOAD_SPEED=$(echo "$SPEED_INFO" | jq -r '.download // empty')
+    UPLOAD_SPEED=$(echo "$SPEED_INFO" | jq -r '.upload // empty')
+    PING=$(echo "$SPEED_INFO" | jq -r '.ping // empty')
+    SERVER_NAME=$(echo "$SPEED_INFO" | jq -r '.server.name // empty')
+    SERVER_COUNTRY=$(echo "$SPEED_INFO" | jq -r '.server.country // empty')
+    SERVER_SPONSOR=$(echo "$SPEED_INFO" | jq -r '.server.sponsor // empty')
+    SHARE_LINK=$(echo "$SPEED_INFO" | jq -r '.share // empty')
+    _SENT=$(echo "$SPEED_INFO" | jq -r '.bytes_sent // empty')
+    _RECEIVED=$(echo "$SPEED_INFO" | jq -r '.bytes_received // empty')
+    CLIENT_IP=$(echo "$SPEED_INFO" | jq -r '.client.ip // empty')
+    CLIENT_ISP=$(echo "$SPEED_INFO" | jq -r '.client.isp // empty')
+    CLIENT_COUNTRY=$(echo "$SPEED_INFO" | jq -r '.client.country // empty')
+    DOWNLOAD_SPEED_MBPS=$(awk "BEGIN {printf \"%.2f Mbps\", $DOWNLOAD_SPEED / 1000000}")
+    UPLOAD_SPEED_MBPS=$(awk "BEGIN {printf \"%.2f Mbps\", $UPLOAD_SPEED / 1000000}")
+    BYTES_SENT=$(awk "BEGIN {printf \"%.2f Mbps\", $_SENT / 1000000}")
+    BYTES_RECEIVED=$(awk "BEGIN {printf \"%.2f Mbps\", $_RECEIVED / 1000000}")
+    TIME=$(echo "$SPEED_INFO" | jq -r '.timestamp // empty')
+    FORMATTED_DATE=$(date -d "${TIME//Z/} +7 hours" +"%A, %d %b %Y %H:%M WIB")
+
+    border "SPEEDTEST RESULTS"
+    echo -e "${BOLD}${CYAN}SpeedTest Results:${RESET}"
+    echo -e "${BOLD}${CYAN}Date: ${YELLOW}${FORMATTED_DATE}${RESET}"
+    echo ""
+    border
+    echo -e "${BOLD}${CYAN}Client IP: ${GREEN}${CLIENT_IP:-Unknown}${RESET}"
+    echo -e "${BOLD}${CYAN}Client ISP: ${GREEN}${CLIENT_ISP:-Unknown}${RESET}"
+    echo -e "${BOLD}${CYAN}Client Country: ${GREEN}${CLIENT_COUNTRY:-Unknown}${RESET}"
+    echo " "
+
+    border
+    echo -e "${BOLD}${BLUE}Server: ${GREEN}${SERVER_NAME:-Unknown}${RESET}"
+    echo -e "${BOLD}${BLUE}Country: ${GREEN}${SERVER_COUNTRY:-Unknown}${RESET}"
+    echo -e "${BOLD}${BLUE}Provider: ${GREEN}${SERVER_SPONSOR:-Unknown}${RESET}"
+    echo -e "${BOLD}${BLUE}Latency: ${GREEN}${PING:-Unknown}ms${RESET}"
+    echo -e "${BOLD}${BLUE}Download: ${GREEN}${DOWNLOAD_SPEED_MBPS:-Unknown}${RESET}"
+    echo -e "${BOLD}${BLUE}Upload: ${GREEN}${UPLOAD_SPEED_MBPS:-Unknown}${RESET}"
+    echo -e "${BOLD}${BLUE}Share Link: ${GREEN}${SHARE_LINK:-No Link Available}${RESET}"
+    echo ""
+    border
+    rm -f $TEMP_DIR
+    echo -e "\r${BOLD}${GREEN}Done!${RESET}"
+}
+
+get_center_x() {
+    local text="$1"
+    local width=$(tput cols)
+    local text_length=${#text}
+    echo $(((width - text_length) / 2))
+}
+
+border() {
+    local term_width=$(tput cols)
+    local border_length=$((term_width - 4))
+    local text="${1}"
+    local border_char="${2:-=}"
+    local border_color="${3:-$CYAN}"
+
+    if [[ -n $text ]]; then
+        local text_length=${#text}
+        local half_border_length=$(((border_length - text_length - 2) / 2))
+        local border_left=$(printf "%-${half_border_length}s" | tr " " "$border_char")
+        local border_right=$(printf "%-${half_border_length}s" | tr " " "$border_char")
+        echo -e "${BOLD}${border_color}${border_left} ${text} ${border_right}${RESET}"
+    else
+        echo -e "${BOLD}${border_color}$(printf "%-${border_length}s" | tr " " "$border_char")${RESET}"
+    fi
+}
+
+get_banner_text() {
+    cat <<EOF
+░█░░░█░█░█▀▀░▀█▀░█▀▀░█▀▀░█▀▄
+░█░░░█░█░█░░░░█░░█▀▀░█▀▀░█▀▄
+░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀░░░▀▀▀░▀░▀
+EOF
+}
+
+banner() {
+    clear
+    border "WELCOME"
+
+    local lines=($(get_banner_text))
+    local banner_start_y=2
+    for ((i = 0; i < ${#lines[@]}; i++)); do
+        local text_x=$(get_center_x "${lines[i]}")
+        tput cup $((banner_start_y + i)) "$text_x"
+        echo -e "${lines[i]}" | lolcat --spread=5.0 --freq=1.0 --seed=256
+    done
+    echo ""
+    border
+}
+
+sys_info() {
+    DATE=$(TZ=Asia/Jakarta date "+%A, %d-%B-%Y %H:%M:%S")
+    BIRTH_YEAR=1997
+    CURRENT_YEAR=$(date "+%Y")
+    AGE=$((CURRENT_YEAR - BIRTH_YEAR))
+
+    echo ""
+    echo -e "${CYAN}Name: ${WHITE} Lucifer${RESET}"
+    echo -e "${CYAN}Age: ${WHITE} ${AGE} tahun${RESET}"
+    echo -e "${CYAN}Alamat: ${WHITE} Jakarta - Indonesia${RESET}"
+    echo -e "${CYAN}Github: ${WHITE} https://github.com/jonesroot${RESET}"
+    echo -e "${CYAN}Instagram: ${WHITE} https://www.instagram.com/guagataudah${RESET}"
+    echo -e "${CYAN}Telegram: ${WHITE} https://t.me/LuciferReborns${RESET}"
+    echo -e "${CYAN}Date: ${WHITE} ${DATE}${RESET}"
+    echo ""
+    border
+}
+
+get_quote() {
+    local TEMP_DIR="$(mktemp)"
+    local QOTD=$(curl -s https://dummyjson.com/quotes/random | jq -r ".quote" 2>$TEMP_DIR)
+
+    if [ -z "$QOTD" ]; then
+        QOTD="Success is not final, failure is not fatal: it is the courage to continue that counts."
+    fi
+
+    echo ""
+    echo -e "${YELLOW}Quote of The Day:${RESET}"
+    echo ""
+    echo -e "${GREEN}\"${QOTD}\"${RESET}"
+    echo ""
+    border
+}
+
+create_table() {
+    local width=$(tput cols)
+    local column_width=$((width / 2 - 4))
+
+    left_menu=("1) Update & Upgrade" "2) Install Libs for Termux" "3) Install Libs for Python3" "4) SpeedTest" "5) Update bash.bashrc")
+    right_menu=("6) Clone Repository" "7) Get List Screen" "8) Enter Screen" "9) Go to Home" "x) Close Termux App")
+
+    echo -e "${BOLD}${CYAN}╔$(printf '═%.0s' $(seq 1 $((column_width))))╦$(printf '═%.0s' $(seq 1 $((column_width))))╗${RESET}"
+    for i in {0..4}; do
+        printf "${BOLD}${CYAN}║${RESET} ${BOLD}${RED}%-*s${RESET} ${BOLD}${CYAN}║${RESET} ${BOLD}${GREEN}%-*s${RESET} ${BOLD}${CYAN}║${RESET}\n" "$column_width" "${left_menu[i]}" "$column_width" "${right_menu[i]}"
+    done
+    echo -e "${BOLD}${CYAN}╚$(printf '═%.0s' $(seq 1 $((column_width))))╩$(printf '═%.0s' $(seq 1 $((column_width))))╝${RESET}"
+}
+
+menu_page() {
+    echo ""
+    create_table
+    echo ""
+    echo -ne "${BOLD}${YELLOW}Choose an Option: ${RESET}"
+    read -r option
+
+    case $option in
+    1) echo "Updating & Upgrading..." ;;
+    2) echo "Installing Termux Libraries..." ;;
+    3) echo "Installing Python3 Libraries..." ;;
+    4) echo "Running SpeedTest..." ;;
+    5) echo "Updating bash.bashrc..." ;;
+    6) echo "Cloning Repository..." ;;
+    7) echo "Getting List of Screens..." ;;
+    8) echo "Entering Screen..." ;;
+    9) cd "$HOME" || exit ;;
+    x) exit ;;
+    *) echo -e "${RED}Invalid Option!${RESET}" ;;
+    esac
+}
+
+main_menu() {
+    install_necessary_packages
+    banner
+    sys_info
+    get_quote
+}
+
+install_necessary_packages
+main_menu
