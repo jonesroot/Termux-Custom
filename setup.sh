@@ -1,49 +1,51 @@
-#!/bin/bash
+#!/usr/bin/bash
 
-# Function to update the repository
 update_repository() {
     echo "Updating repository..."
     bash update.sh
     echo "Repository updated successfully!"
 }
 
-# Main script
-clear
-echo
-pkg install pv -y >/dev/null 2>&1
-echo -e "\033[32m\033[1m{───────────────────────────────────────────────────}"
-echo -e "\033[33m\033[1m   Installing All Required Packages! Please Wait..." | pv -qL 10
-apt update                    
-apt upgrade -y 
-pkg install python -y 
-pkg install cmatrix -y 
-pkg install pv -y 
-apt install figlet -y  
-apt install ruby -y 
-apt install mpv -y 
-pip install lolcat 
-pip install random 
-pip install requests 
-pkg install python2 -y 
-pkg install termux-api -y 
-echo -e "\033[31m\033[1m        INSTALLATION COMPLETED \033[32m[\033[36m✓\033[32m]" | pv -qL 12
-echo -e "\033[33m\033[1m]────────────────────────────────────────────["
-termux-setup-storage
-cd $HOME/Termux-Custom
-cp login.sh $PREFIX/etc
-chmod +x login.sh delete.sh setup.sh sound_effect.py banner.sh update.sh
-mkdir -p $HOME/Termux-Custom/Song 
-mv Access-Granted.mp3 Jarvis2.mp3 JARVIS.mp3 sound_effect.py $HOME/Termux-Custom/Song
-rm 1
-mkdir -p $HOME/Termux-Custom/NETWORK
-mv network.py $HOME/Termux-Custom/NETWORK
+install_dependencies() {
+    echo -e "\033[33mUpdating package lists...\033[0m"
+    apt update && apt upgrade -y 
+    echo -e "\033[32mInstalling Bash dependencies...\033[0m"
+    while IFS= read -r package; do
+        echo -e "\033[33mInstalling: $package...\033[0m"
+        pkg install "$package" -y >/dev/null 2>&1
+    done < requirements/bash.txt
 
-# Prompt user for update
+    echo -e "\033[32mInstalling Python dependencies...\033[0m"
+    while IFS= read -r package; do
+        echo -e "\033[33mInstalling: $package...\033[0m"
+        pip install "$package" >/dev/null 2>&1
+    done < requirements/python.txt
+}
+
+setup_files() {
+    echo -e "\033[32mSetting up files and permissions...\033[0m"
+    for file in $HOME/Termux-Custom/*.sh; do
+        filename=$(basename "$file" .sh)
+        cp "$file" "$PREFIX/etc/$filename"
+        chmod +x "$PREFIX/etc/$filename"
+    done
+    echo -e "\033[32mAll scripts have been copied and made executable.\033[0m"
+}
+
+clear
+echo -e "\033[32m{──────────────────────────────────────────────}"
+echo -e "\033[33mInstalling All Required Packages! Please Wait..." | pv -qL 10
+install_dependencies
+setup_files
+
+echo -e "\033[31mINSTALLATION COMPLETED \033[32m[\033[36m✓\033[32m]" | pv -qL 12
+echo -e "\033[33m]────────────────────────────────────────────["
+
+termux-setup-storage
+
 read -p "Do you want to update the repository now? (y/n): " choice
 if [ "$choice" = "y" ]; then
     update_repository
 fi
 
-# Run login script
 bash login.sh
-
