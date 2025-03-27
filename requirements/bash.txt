@@ -5,3 +5,4 @@ pv
 termux-api
 mpv
 figlet
+x11-repo
