@@ -13,7 +13,28 @@ MAX_ATTEMPTS=3
 BASHRC_PATH="$PREFIX/etc/bash.bashrc"
 BASHRC_BACKUP="$PREFIX/etc/bash.bashrc.bak"
 
-# Function for typing effect
+# Function to check and install packages
+install_package() {
+    package=$1
+    if ! pkg list-installed | grep -q "^$package"; then
+        echo -e "${yellow}Installing package: $package${reset}"
+        pkg install -y "$package"
+    else
+        echo -e "${green}Package $package is already installed. Skipping...${reset}"
+    fi
+}
+
+# Function to check and install Python dependencies
+install_python_package() {
+    package=$1
+    if ! pip3 show "$package" > /dev/null 2>&1; then
+        echo -e "${yellow}Installing Python package: $package${reset}"
+        pip3 install "$package"
+    else
+        echo -e "${green}Python package $package is already installed. Skipping...${reset}"
+    fi
+}
+
 type_effect() {
     local text="$1"
     local delay=0.05
@@ -24,7 +45,6 @@ type_effect() {
     printf "\n"
 }
 
-# Function to create a new user account
 create_account() {
     clear
     echo -e "${yellow}$(type_effect 'No login data found. Please create a new account.')${reset}\n"
@@ -49,28 +69,65 @@ create_account() {
     sleep 2
 }
 
-# Check if login file exists
 if [[ ! -f "$LOGIN_FILE" ]]; then
     create_account
 fi
 
-# Check if `sha256sum` is installed
 if ! command -v sha256sum &> /dev/null; then
     echo -e "${red}Error: sha256sum command not found! Please install coreutils.${reset}"
     exit 1
 fi
 
-# Backup the original bash.bashrc file
 if [[ ! -f "$BASHRC_BACKUP" ]]; then
     cp "$BASHRC_PATH" "$BASHRC_BACKUP"
 fi
 
-# Writing new bash.bashrc content
-cat <<EOF > "$BASHRC_PATH"
-trap '' SIGINT
+# Install required packages (check before installing)
+install_package "nano"
+install_package "coreutils"
+
+cat <<LOGIN>"$BASHRC_PATH"
+trap '' 2
 
 attempt=0
 while (( attempt < MAX_ATTEMPTS )); do
+    << comment
+    shopt -s autocd
+    shopt -s cdspell
+    shopt -s checkhash
+    shopt -s checkwinsize
+    shopt -s compat31
+    shopt -s compat32
+    shopt -s compat40
+    shopt -s compat41
+    shopt -s no_empty_cmd_completion
+    shopt -s histverify
+    shopt -s histappend
+    shopt -s dirspell
+    shopt -s direxpand
+    shopt -s compat43
+    shopt -s compat32
+    shopt -s lithist
+    shopt -s extglob
+    shopt -s nullglob
+    shopt -s globstar
+    comment
+    PS1='${BOLD}${BLUE}╭──[ ${GREEN}${USER}@${CYAN}$(basename "$PWD") ]\n${BLUE}╰──>${RESET} '
+    e="nano"
+    USER_NAME="Lucifer"
+    BOLD=$(tput bold)
+    RESET=$(tput sgr0)
+    RED=$(tput setaf 196)
+    GREEN=$(tput setaf 24)
+    YELLOW=$(tput setaf 226)
+    BLUE=$(tput setaf 21)
+    CYAN=$(tput setaf 51)
+    WHITE=$(tput setaf 195)
+    export USER=$USER_NAME
+    export HISTCONTROL=ignoreboth
+    export HISTSIZE=1000
+    export HISTFILESIZE=2000
+    
     clear
     echo -e "${yellow}$(type_effect 'Welcome to Termux Secure Login!')${reset}"
     echo -e "${cyan}$(type_effect 'Please enter your credentials.')${reset}\n"
