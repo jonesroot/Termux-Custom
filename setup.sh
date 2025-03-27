@@ -1,36 +1,50 @@
 #!/usr/bin/bash
 
-# Function to display real-time progress
-progress_bar() {
-    local progress=0
-    local bar_length=40
-    local percent=0
-    local last_percent=0
+# Define Colors
+RED="$(printf '\033[31m')"
+GREEN="$(printf '\033[32m')"
+ORANGE="$(printf '\033[33m')"
+BLUE="$(printf '\033[34m')"
+MAGENTA="$(printf '\033[35m')"
+CYAN="$(printf '\033[36m')"
+WHITE="$(printf '\033[37m')"
+BLACK="$(printf '\033[30m')"
+REDBG="$(printf '\033[41m')"
+GREENBG="$(printf '\033[42m')"
+ORANGEBG="$(printf '\033[43m')"
+BLUEBG="$(printf '\033[44m')"
+MAGENTABG="$(printf '\033[45m')"
+CYANBG="$(printf '\033[46m')"
+WHITEBG="$(printf '\033[47m')"
+BLACKBG="$(printf '\033[40m')"
+DEFAULT_FG="$(printf '\033[39m')"
+DEFAULT_BG="$(printf '\033[49m')"
 
-    while [ $progress -le $bar_length ]; do
-        percent=$((progress * 100 / bar_length))
-        if [ "$percent" -gt "$last_percent" ]; then
-            # Display progress bar and percentage
-            printf "\r[\033[32m%-${bar_length}s\033[0m] %d%%" "${bar:0:$progress}" "$percent"
-            last_percent=$percent
-        fi
+# Function to show a real-time progress bar
+progress_bar() {
+    pid=$1
+    message=$2
+    TEMP_DIR=$3
+    spin="-\|/"
+    i=0
+    while kill -0 "$pid" 2>$TEMP_DIR; do
+        i=$(((i + 1) % 4))
+        printf "\r${spin:$i:1} $message"
         sleep 0.1
-        ((progress++))
     done
-    echo ""
+    printf "\r$message ${GREEN}Done!\n"
+    sleep 2
+    clear
 }
 
-# Function to simulate real-time process (e.g., installing a package)
+# Simulate real-time process updates
 real_time_process() {
-    local process_duration=$1
-    local progress_step=$((process_duration / 100))
-
-    for i in $(seq 1 100); do
-        # Simulate some work (e.g., installation, copying files)
-        sleep $progress_step
-        # Update progress bar
-        progress_bar $i
+    local duration=$1
+    for i in $(seq 1 $duration); do
+        sleep 0.1
+        echo -ne "\rProcessing... $((i * 100 / duration))%"
     done
+    echo -e "\nDone!"
 }
 
 # Function to install dependencies
@@ -38,30 +52,29 @@ install_dependencies() {
     echo -e "\n\033[33mUpdating package lists...\033[0m"
     real_time_process 5
 
-    echo -e "\n\033[32mInstalling Bash dependencies...\033[0m"
+    echo -e "\n\033[32mInstalling dependencies...\033[0m"
     total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/bash.txt")
     current_package=0
 
     while IFS= read -r package; do
         ((current_package++))
         echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-        real_time_process 3
+        progress_bar $$ "Installing $package" /tmp/pkg_install.log
         pkg install "$package" -y >/dev/null 2>&1
     done < "$HOME/Termux-Custom/requirements/bash.txt"
 
-    echo -e "\n\033[32mInstalling Python dependencies...\033[0m"
     total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/python.txt")
     current_package=0
 
     while IFS= read -r package; do
         ((current_package++))
         echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-        real_time_process 3
+        progress_bar $$ "Installing $package" /tmp/pkg_install.log
         pip install "$package" >/dev/null 2>&1
     done < "$HOME/Termux-Custom/requirements/python.txt"
 }
 
-# Function to copy and set up files
+# Function to set up files
 setup_files() {
     echo -e "\n\033[32mSetting up files and permissions...\033[0m"
     total_files=$(ls -1 "$HOME/Termux-Custom/"*.sh | wc -l)
@@ -92,6 +105,7 @@ echo -e "\033[33m]────────────────────�
 
 termux-setup-storage
 
+# Ask if user wants to update the repository
 read -p "Do you want to update the repository now? (y/n): " choice
 if [ "$choice" = "y" ]; then
     update_repository
