@@ -1,3 +1,4 @@
 lolcat
 random
 requests
+speedtest-cli
