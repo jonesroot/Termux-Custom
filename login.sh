@@ -105,31 +105,26 @@ done
 trap - SIGINT
 echo -e "${cyan}"
 cat << "BANNER"
-████████╗███████╗██████╗ ███╗   ███╗██╗   ██╗
-╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║   ██║
-   ██║   █████╗  ██████╔╝██╔████╔██║██║   ██║
-   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║   ██║
-   ██║   ███████╗██║  ██║██║ ╚═╝ ██║╚██████╔╝
-   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝ ╚═════╝ 
+┏┓┏┳┳━┳━━┳━━┳━┳━┓
+┃┃┃┃┃┏┻┃┃┫━┳┫┳┫╋┃
+┃┗┫┃┃┗┳┃┃┫┏┛┃┻┫┓┫
+┗━┻━┻━┻━━┻┛╋┗━┻┻┛
 BANNER
 echo -e "${reset}"
 echo -e "${green}Login time: \$(date)${reset}"
 echo -e "${yellow}Type 'exit' to logout.${reset}"
 EOF
 
-# Success message
 echo -e "${green}Secure login setup completed! Restart Termux to test it.${reset}"
 
 bash banner.sh
 echo
 
-# Prompt for login
 read -p $'\e[1;32m  Enter \033[33mUsername \033[37mfor \033[32mLogin:\e[0m ' username                
 read -p $'\e[1;32m  Enter \033[33mPassword \033[37mfor \033[32mLogin:\e[0m ' password 
 echo
 echo
 
-# Verify login
 stored_username=$(cut -d':' -f1 "$LOGIN_FILE")
 stored_password=$(cut -d':' -f2 "$LOGIN_FILE")
 input_password_hash=$(echo "$password" | sha256sum | awk '{print $1}')
@@ -145,15 +140,13 @@ if [[ "$username" == "$stored_username" && "$input_password_hash" == "$stored_pa
 
     echo -e "\033[1m\033[33m
 
-██╗  ██╗ █████╗  ██████╗██╗  ██╗███████╗██████╗ 
-██║  ██║██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
-███████║███████║██║     █████╔╝ █████╗  ██████╔╝
-██╔══██║██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗
-██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║
-╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝                                                                    
+┏┓┏┳┳━┳━━┳━━┳━┳━┓
+┃┃┃┃┃┏┻┃┃┫━┳┫┳┫╋┃
+┃┗┫┃┃┗┳┃┃┫┏┛┃┻┫┓┫
+┗━┻━┻━┻━━┻┛╋┗━┻┻┛                                                             
 
 "
-    echo -e  "     \e[1m\e[32m▂▃▄▅▆▇▓▒░ \033[1mCoded By \e[33mLucifer \e[1m\e[32m░▒▓▇▆▅▄▃▂"
+    echo -e  "     \e[1m\e[32m▂▃▄▅▆▇▓▒░ \033[1mCoded By \e[33mᴸᵘᶜⁱᶠᵉʳ \e[1m\e[32m░▒▓▇▆▅▄▃▂"
 else
     echo -e "\e[1;31m  You Entered Wrong Details! \e[0m"
     sleep 1
