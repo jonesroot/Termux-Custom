@@ -35,29 +35,49 @@ progress_bar() {
     clear
 }
 
+is_installed() {
+    package=$1
+    if dpkg -l | grep -q "$package"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+is_python_installed() {
+    package=$1
+    if pip3 show "$package" > /dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 install_dependencies() {
     echo -e "\n\033[33mUpdating package lists...\033[0m"
     echo -e "\n\033[32mInstalling dependencies...\033[0m"
     TEMP_DIR="$(mktemp)"
     
-    # Install bash dependencies
     total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/bash.txt")
     current_package=0
     while IFS= read -r package; do
         ((current_package++))
-        echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-        progress_bar $$ "Installing $package" $TEMP_DIR
-        pkg install "$package" -y >$TEMP_DIR 2>&1
+        if ! is_installed "$package"; then
+            echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
+            progress_bar $! "Installing $package" $TEMP_DIR
+            pkg install "$package" -y >$TEMP_DIR 2>&1
+        fi
     done < "$HOME/Termux-Custom/requirements/bash.txt"
 
-    # Install Python dependencies
     total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/python.txt")
     current_package=0
     while IFS= read -r package; do
         ((current_package++))
-        echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-        progress_bar $$ "Installing $package" $TEMP_DIR
-        pip3 install "$package" >$TEMP_DIR 2>&1
+        if ! is_python_installed "$package"; then
+            echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
+            progress_bar $! "Installing $package" $TEMP_DIR
+            pip3 install "$package" >$TEMP_DIR 2>&1
+        fi
     done < "$HOME/Termux-Custom/requirements/python.txt"
 }
 
@@ -77,7 +97,6 @@ setup_files() {
     echo -e "\033[32mAll scripts have been copied and made executable.\033[0m"
 }
 
-# Main script execution
 clear
 echo -e "\033[32m{──────────────────────────────────────────────}"
 echo -e "\033[33mInstalling All Required Packages! Please Wait...\033[0m"
