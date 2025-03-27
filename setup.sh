@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+# Function to display real-time progress
 progress_bar() {
     local progress=0
     local bar_length=40
@@ -9,6 +10,7 @@ progress_bar() {
     while [ $progress -le $bar_length ]; do
         percent=$((progress * 100 / bar_length))
         if [ "$percent" -gt "$last_percent" ]; then
+            # Display progress bar and percentage
             printf "\r[\033[32m%-${bar_length}s\033[0m] %d%%" "${bar:0:$progress}" "$percent"
             last_percent=$percent
         fi
@@ -18,23 +20,20 @@ progress_bar() {
     echo ""
 }
 
+# Function to simulate real-time process (e.g., installing a package)
 real_time_process() {
     local process_duration=$1
     local progress_step=$((process_duration / 100))
 
     for i in $(seq 1 100); do
+        # Simulate some work (e.g., installation, copying files)
         sleep $progress_step
+        # Update progress bar
         progress_bar $i
     done
 }
 
-update_repository() {
-    echo -e "\n\033[33mUpdating repository...\033[0m"
-    progress_bar 3
-    bash update.sh
-    echo -e "\033[32mRepository updated successfully!\033[0m"
-}
-
+# Function to install dependencies
 install_dependencies() {
     echo -e "\n\033[33mUpdating package lists...\033[0m"
     real_time_process 5
@@ -58,10 +57,11 @@ install_dependencies() {
         ((current_package++))
         echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
         real_time_process 3
-        pip3 install "$package" >/dev/null 2>&1
+        pip install "$package" >/dev/null 2>&1
     done < "$HOME/Termux-Custom/requirements/python.txt"
 }
 
+# Function to copy and set up files
 setup_files() {
     echo -e "\n\033[32mSetting up files and permissions...\033[0m"
     total_files=$(ls -1 "$HOME/Termux-Custom/"*.sh | wc -l)
@@ -79,6 +79,7 @@ setup_files() {
     echo -e "\033[32mAll scripts have been copied and made executable.\033[0m"
 }
 
+# Main script execution
 clear
 echo -e "\033[32m{──────────────────────────────────────────────}"
 echo -e "\033[33mInstalling All Required Packages! Please Wait...\033[0m"
