@@ -6,3 +6,4 @@ termux-api
 mpv
 figlet
 x11-repo
+ncurses-utils
