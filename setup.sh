@@ -8,7 +8,7 @@ update_repository() {
 
 install_dependencies() {
     echo -e "\033[33mUpdating package lists...\033[0m"
-    apt update && apt upgrade -y 
+    apt update && apt upgrade -y >/dev/null 2>&1
     echo -e "\033[32mInstalling Bash dependencies...\033[0m"
     while IFS= read -r package; do
         echo -e "\033[33mInstalling: $package...\033[0m"
