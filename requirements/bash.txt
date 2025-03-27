@@ -1,0 +1,7 @@
+tur-repo
+python3.10
+cmatrix
+pv
+termux-api
+mpv
+figlet
