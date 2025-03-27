@@ -13,13 +13,13 @@ install_dependencies() {
     while IFS= read -r package; do
         echo -e "\033[33mInstalling: $package...\033[0m"
         pkg install "$package" -y >/dev/null 2>&1
-    done < requirements/bash.txt
+    done < $HOME/Termux-Custom/requirements/bash.txt
 
     echo -e "\033[32mInstalling Python dependencies...\033[0m"
     while IFS= read -r package; do
         echo -e "\033[33mInstalling: $package...\033[0m"
         pip install "$package" >/dev/null 2>&1
-    done < requirements/python.txt
+    done < $HOME/Termux-Custom/requirements/python.txt
 }
 
 setup_files() {
