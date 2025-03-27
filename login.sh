@@ -86,12 +86,13 @@ fi
 install_package "nano"
 install_package "coreutils"
 
-cat <<LOGIN>"$BASHRC_PATH"
+cat <<LOGIN > "$BASHRC_PATH"
 trap '' 2
 
 attempt=0
 while (( attempt < MAX_ATTEMPTS )); do
-    << comment
+    # Removed unnecessary '<< comment' here
+
     shopt -s autocd
     shopt -s cdspell
     shopt -s checkhash
@@ -111,7 +112,7 @@ while (( attempt < MAX_ATTEMPTS )); do
     shopt -s extglob
     shopt -s nullglob
     shopt -s globstar
-    comment
+
     PS1='${BOLD}${BLUE}╭──[ ${GREEN}${USER}@${CYAN}$(basename "$PWD") ]\n${BLUE}╰──>${RESET} '
     e="nano"
     USER_NAME="Lucifer"
@@ -170,46 +171,4 @@ BANNER
 echo -e "${reset}"
 echo -e "${green}Login time: \$(date)${reset}"
 echo -e "${yellow}Type 'exit' to logout.${reset}"
-EOF
-
-echo -e "${green}Secure login setup completed! Restart Termux to test it.${reset}"
-
-bash banner.sh
-echo
-
-read -p $'\e[1;32m  Enter \033[33mUsername \033[37mfor \033[32mLogin:\e[0m ' username                
-read -p $'\e[1;32m  Enter \033[33mPassword \033[37mfor \033[32mLogin:\e[0m ' password 
-echo
-echo
-
-stored_username=$(cut -d':' -f1 "$LOGIN_FILE")
-stored_password=$(cut -d':' -f2 "$LOGIN_FILE")
-input_password_hash=$(echo "$password" | sha256sum | awk '{print $1}')
-
-if [[ "$username" == "$stored_username" && "$input_password_hash" == "$stored_password" ]]; then
-    sleep 3
-    clear
-    cd "$HOME"
-    cd TermuX-Custom/Song
-    python sound_effect.py
-    clear
-    cd "$HOME" 
-
-    echo -e "\033[1m\033[33m
-
-┏┓┏┳┳━┳━━┳━━┳━┳━┓
-┃┃┃┃┃┏┻┃┃┫━┳┫┳┫╋┃
-┃┗┫┃┃┗┳┃┃┫┏┛┃┻┫┓┫
-┗━┻━┻━┻━━┻┛╋┗━┻┻┛                                                             
-
-"
-    echo -e  "     \e[1m\e[32m▂▃▄▅▆▇▓▒░ \033[1mCoded By \e[33mᴸᵘᶜⁱᶠᵉʳ \e[1m\e[32m░▒▓▇▆▅▄▃▂"
-else
-    echo -e "\e[1;31m  You Entered Wrong Details! \e[0m"
-    sleep 1
-    cmatrix -L
-fi
-
-trap 2
-echo
-echo -e "\033[1m\e[1;32m Your Termux is \033[33mReady \nSo please \033[31mExit \033[37mand \033[32mLogin.\e[0m"
+LOGIN
