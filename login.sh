@@ -38,7 +38,7 @@ if [[ \$pass == $password && \$user == $username ]]; then
 sleep 3
 clear
 cd $HOME
-cd TermuX-Custom
+cd Termux-Custom
 cd Song
 python sound_effect.py
 clear
@@ -99,7 +99,7 @@ export HISTSIZE=1000
 export HISTFILESIZE=2000
 comment
 cd $HOME
-cd TermuX-Custom
+cd Termux-Custom
 cd
 else
 echo ""
