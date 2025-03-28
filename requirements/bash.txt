@@ -8,3 +8,4 @@ figlet
 x11-repo
 ncurses-utils
 unstable-repo
+which
