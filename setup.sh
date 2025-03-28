@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-RED="$(printf '\033[31m')"
+RED=$(tput )
 GREEN="$(printf '\033[32m')"
 ORANGE="$(printf '\033[33m')"
 BLUE="$(printf '\033[34m')"
@@ -18,6 +18,8 @@ WHITEBG="$(printf '\033[47m')"
 BLACKBG="$(printf '\033[40m')"
 DEFAULT_FG="$(printf '\033[39m')"
 DEFAULT_BG="$(printf '\033[49m')"
+H_CURSOR=$(tput civis)
+S_CURSOR=$(tput cnorm)
 
 progress_bar() {
     pid=$1
