@@ -25,7 +25,7 @@ progress_bar() {
     TEMP_DIR=$3
     spin="-\|/"
     i=0
-    while kill -0 "$pid" 2>${TEMP_DIR}; do
+    while kill -0 "$pid" 2>$TEMP_DIR; do
         i=$(((i + 1) % 4))
         printf "\r${spin:$i:1} $message"
         sleep 0.1
@@ -65,7 +65,7 @@ install_dependencies() {
         if ! is_installed "$package"; then
             echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
             progress_bar $! "Installing $package" $TEMP_DIR
-            pkg install "$package" -y >${TEMP_DIR} 2>&1
+            pkg install "$package" -y >$TEMP_DIR 2>&1
         fi
     done < "$HOME/Termux-Custom/requirements/bash.txt"
 
