@@ -23,8 +23,7 @@ fi
 if [ -f motd.sh ]; then
     mv motd.sh motd.sh.bak
 fi
-rm motd
-rm bash.bashrc                                       
+
 cat <<LOGIN>bash.bashrc                            
 
 trap "" SIGINT
