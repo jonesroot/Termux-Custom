@@ -43,7 +43,7 @@ cd Song
 python sound_effect.py
 clear
 cd $HOME 
-echo -e "\033[1m\033[33m
+echo -e "${BOLD}${CYAN}
 
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
