@@ -1,69 +1,33 @@
-#!/usr/bin/bash 
+#!/usr/bin/bash
+BOLD=$(tput bold)
+RESET=$(tput sgr0)
+RED=$(tput setaf 196)
+GREEN=$(tput setaf 24)
+YELLOW=$(tput setaf 226)
+BLUE=$(tput setaf 21)
+CYAN=$(tput setaf 51)
+WHITE=$(tput setaf 195)
 
-bash banner.sh
+bash $HOME/../usr/etc/banner
 echo
 
-read -p $'\e[1;32m  Enter \033[33mUsername \033[37mfor \033[32mLogin:\e[0m ' username                
-read -p $'\e[1;32m  Enter \033[33mPassword \033[37mfor \033[32mLogin:\e[0m ' password 
-echo
-echo
-read -p $'\033[1m\033[32m  Your \033[0mShell \033[38;5;209mName\033[31m: \033[33m\033[1m ' names
-cd                                                   
-cd ..                                               
-cd usr/etc                                       
-rm motd                                           
+read -p "${BOLD}${CYAN}Enter ${GREEN}Username ${CYAN}for ${GREEN}Login:${RESET} " username                
+read -p "${BOLD}${CYAN}Enter ${GREEN}Password ${CYAN}for ${GREEN}Login:${RESET} " password 
+read -p "${BOLD}${CYAN}Your ${GREEN}Shell ${CYAN}Name: ${RESET} " names
+
+cd $HOME/..usr/etc
+
+if [ -f bash.bashrc ]; then
+    mv bash.bashrc bash.bashrc.bak
+fi
+if [ -f motd.sh ]; then
+    mv motd.sh motd.sh.bak
+fi
+rm motd
 rm bash.bashrc                                       
 cat <<LOGIN>bash.bashrc                            
 
-trap '' 2                                          
-echo -e "\e[1;32m      
-
-┌──────────────────────────┐
-│ ____ ____ ____ ____ ____ │
-│||L |||O |||G |||I |||N ||│
-│||__|||__|||__|||__|||__||│
-│|/__\|/__\|/__\|/__\|/__\|│
-└──────────────────────────┘
-
-\033[31m           ────────────────────────────
-\033[33m               Login To \033[32mContinue
-\033[31m           ────────────────────────────
-
-
-\e[0m"
-echo
-read -p $'       \e[33m\033[1m\033[33m[\033[31m+\033[33m] \033[37mINPUT \033[33mUSERNAME FOR LOGIN:\033[32m ' user
-read -s -p $'       \e[32m\033[1m\033[33m[\033[31m+\033[33m] \033[37mINPUT \033[33mPASSWORD FOR LOGIN:\033[33m ' pass                                                
-if [[ \$pass == $password && \$user == $username ]]; then
-sleep 3
-clear
-cd $HOME
-cd Termux-Custom
-cd Song
-python sound_effect.py
-clear
-cd $HOME 
-echo -e "${BOLD}${CYAN}
-
-
-::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::_|        _|    _|    _|_|_|  _|_|_|  _|_|_|_|  _|_|_|_|  _|_|_|    ::
-::_|        _|    _|  _|          _|    _|        _|        _|    _|  ::
-::_|        _|    _|  _|          _|    _|_|_|    _|_|_|    _|_|_|    ::
-::_|        _|    _|  _|          _|    _|        _|        _|    _|  ::
-::_|_|_|_|    _|_|      _|_|_|  _|_|_|  _|        _|_|_|_|  _|    _|  ::
-::                                                                    ::
-::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::                                                              
-
-"
-echo -e  "     \e[1m\e[32m▂▃▄▅▆▇▓▒░ \033[1mCoded By \e[33mLucifer \e[1m\e[32m░▒▓▇▆▅▄▃▂"
-cd $HOME
-echo -e "   \033[1m\033[33m]\033[31m──────────────────────────────────────\033[33m["
-echo 
-PS1='${BOLD}${BLUE}╭──[ ${GREEN}${USER}@${CYAN}$(basename "$PWD") ]\n${BLUE}╰──>${RESET} '
-<< comment
+trap "" SIGINT
 shopt -s autocd
 shopt -s cdspell
 shopt -s checkhash
@@ -83,6 +47,18 @@ shopt -s lithist
 shopt -s extglob
 shopt -s nullglob
 shopt -s globstar
+shopt -s extdebug
+shopt -s histappend
+shopt -s cmdhist
+shopt -s checkwinsize
+
+set -o xtrace
+set -o verbose
+set -o errexit
+set -o errtrace
+set -o functrace
+set -o pipefail
+
 e="nano"
 USER_NAME="Lucifer"
 BOLD=$(tput bold)
@@ -97,7 +73,57 @@ export USER=$USER_NAME
 export HISTCONTROL=ignoreboth
 export HISTSIZE=1000
 export HISTFILESIZE=2000
-comment
+PS1='${BOLD}${BLUE}╭──[ ${GREEN}${USER}@${CYAN}$(basename $PWD) ]\n${BLUE}╰──>${RESET} '
+
+if [ -x /data/data/com.termux/files/usr/libexec/termux/command-not-found ]; then
+    command_not_found_handle() {
+        /data/data/com.termux/files/usr/libexec/termux/command-not-found "$1"
+    }
+fi
+
+[ -r /data/data/com.termux/files/usr/share/bash-completion/bash_completion ] &&
+    . /data/data/com.termux/files/usr/share/bash-completion/bash_completion
+echo -e "${BOLD}${GREEN}      
+
+┌──────────────────────────┐
+│ ____ ____ ____ ____ ____ │
+│||L |||O |||G |||I |||N ||│
+│||__|||__|||__|||__|||__||│
+│|/__\|/__\|/__\|/__\|/__\|│
+└──────────────────────────┘
+
+${CYAN}           ────────────────────────────
+${YELLOW}               Login To ${GREEN}Continue ..
+${CYAN}           ────────────────────────────
+
+
+${RESET}"
+echo
+read -p $'       \e${BOLD}${YELLOW}INPUT ${GREEN}USERNAME FOR LOGIN:${RESET} ' user
+read -s -p $'       \e${BOLD}${YELLOW}INPUT ${GREEN}PASSWORD FOR LOGIN:${RESET} ' pass                                                
+if [[ \$pass == $password && \$user == $username ]]; then
+    python3 ~/Termux-Custom/songs/sound_effect.py 1
+    sleep 3
+    clear
+    cd $HOME 
+echo -e "${BOLD}${CYAN}
+
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::_|        _|    _|    _|_|_|  _|_|_|  _|_|_|_|  _|_|_|_|  _|_|_|    ::
+::_|        _|    _|  _|          _|    _|        _|        _|    _|  ::
+::_|        _|    _|  _|          _|    _|_|_|    _|_|_|    _|_|_|    ::
+::_|        _|    _|  _|          _|    _|        _|        _|    _|  ::
+::_|_|_|_|    _|_|      _|_|_|  _|_|_|  _|        _|_|_|_|  _|    _|  ::
+::                                                                    ::
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::                                                              
+
+"
+echo -e  "     \e[1m\e[32m▂▃▄▅▆▇▓▒░ \033[1mCoded By \e[33mLucifer \e[1m\e[32m░▒▓▇▆▅▄▃▂"
+cd $HOME
+echo -e "   \033[1m\033[33m]\033[31m──────────────────────────────────────\033[33m["
 cd $HOME
 cd Termux-Custom
 cd
