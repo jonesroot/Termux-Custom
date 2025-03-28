@@ -15,7 +15,7 @@ read -p "${BOLD}${CYAN}Enter ${GREEN}Username ${CYAN}for ${GREEN}Login:${RESET} 
 read -p "${BOLD}${CYAN}Enter ${GREEN}Password ${CYAN}for ${GREEN}Login:${RESET} " password 
 read -p "${BOLD}${CYAN}Your ${GREEN}Shell ${CYAN}Name: ${RESET} " names
 
-cd $HOME/..usr/etc
+cd $HOME/../usr/etc
 
 if [ -f bash.bashrc ]; then
     mv bash.bashrc bash.bashrc.bak
