@@ -12,8 +12,8 @@ WHITE=$(tput setaf 195)
 bash "$HOME/../usr/etc/banner"
 echo
 
-read -rp "${BOLD}${CYAN}Enter ${GREEN}Username ${CYAN}for ${GREEN}Login:${RESET} " username                
-read -rp "${BOLD}${CYAN}Enter ${GREEN}Password ${CYAN}for ${GREEN}Login:${RESET} " password 
+read -rp "${BOLD}${CYAN}Enter ${GREEN}Username ${CYAN}for ${GREEN}Login:${RESET} " username
+read -rp "${BOLD}${CYAN}Enter ${GREEN}Password ${CYAN}for ${GREEN}Login:${RESET} " password
 read -rp "${BOLD}${CYAN}Your ${GREEN}Shell ${CYAN}Name: ${RESET} " names
 
 cd "$HOME/../usr/etc" || exit
