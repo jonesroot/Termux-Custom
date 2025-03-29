@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
-RED=$(tput )
-GREEN="$(printf '\033[32m')"
+RED=$(tput setaf 9)
+GREEN="$(tput setaf 10)"
 ORANGE="$(printf '\033[33m')"
 BLUE="$(printf '\033[34m')"
 MAGENTA="$(printf '\033[35m')"
