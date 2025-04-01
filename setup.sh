@@ -63,7 +63,7 @@ setup_files() {
     echo -e "${GREEN}\nMenyiapkan file dan izin...${RESET}"
     for file in "$HOME/Termux-Custom/"*.sh; do
         [ -f "$file" ] || continue
-        filename="$(basename "$file")"
+        filename="$(basename $file .sh)"
         echo -e "${YELLOW}Menyalin: $filename${RESET}"
         cp "$file" "$PREFIX/bin/$filename"
         chmod +x "$PREFIX/bin/$filename"
@@ -72,14 +72,10 @@ setup_files() {
 }
 
 clear
-cat << EOF
-${GREEN}──────────────────────────────────────────────${RESET}
-${YELLOW}Memulai instalasi dependensi, harap tunggu...${RESET}
-EOF
-
+echo -e "${GREEN}──────────────────────────────────────────────${RESET}"
+echo -e "${YELLOW}Memulai instalasi dependensi, harap tunggu...${RESET}"
 install_dependencies
 setup_files
-
 echo -e "${RED}INSTALASI SELESAI ${GREEN}[✓]${RESET}"
 echo -e "${YELLOW}──────────────────────────────────────────────${RESET}"
 
