@@ -1,118 +1,91 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
-RED=$(tput setaf 9)
-GREEN="$(tput setaf 10)"
-ORANGE="$(printf '\033[33m')"
-BLUE="$(printf '\033[34m')"
-MAGENTA="$(printf '\033[35m')"
-CYAN="$(printf '\033[36m')"
-WHITE="$(printf '\033[37m')"
-BLACK="$(printf '\033[30m')"
-REDBG="$(printf '\033[41m')"
-GREENBG="$(printf '\033[42m')"
-ORANGEBG="$(printf '\033[43m')"
-BLUEBG="$(printf '\033[44m')"
-MAGENTABG="$(printf '\033[45m')"
-CYANBG="$(printf '\033[46m')"
-WHITEBG="$(printf '\033[47m')"
-BLACKBG="$(printf '\033[40m')"
-DEFAULT_FG="$(printf '\033[39m')"
-DEFAULT_BG="$(printf '\033[49m')"
-H_CURSOR=$(tput civis)
-S_CURSOR=$(tput cnorm)
+# Warna ANSI
+RESET="\e[0m"
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+MAGENTA="\e[35m"
+CYAN="\e[36m"
+WHITE="\e[37m"
 
+# Sembunyikan dan tampilkan kursor
+HIDE_CURSOR="$(tput civis)"
+SHOW_CURSOR="$(tput cnorm)"
+
+# Fungsi Progress Bar
 progress_bar() {
-    pid=$1
-    message=$2
-    TEMP_DIR=$3
-    spin="-\|/"
-    i=0
-    while kill -0 "$pid" 2>$TEMP_DIR; do
-        i=$(((i + 1) % 4))
-        printf "\r${spin:$i:1} $message"
+    local pid=$1 message=$2
+    local spin='|/-\\' i=0
+    echo -ne "$HIDE_CURSOR"
+    while kill -0 "$pid" 2>/dev/null; do
+        printf "\r%s [%c]" "$message" "${spin:i++%4:1}"
         sleep 0.1
     done
-    printf "\r$message ${GREEN}Done!\n"
-    sleep 2
-    clear
+    printf "\r%s ${GREEN}[✓]${RESET}\n" "$message"
+    echo -ne "$SHOW_CURSOR"
 }
 
+# Periksa apakah paket sudah terinstal
 is_installed() {
-    package=$1
-    if dpkg -l | grep -q "$package"; then
-        return 0
-    else
-        return 1
-    fi
+    dpkg -l | grep -q "^ii  $1 "
 }
 
 is_python_installed() {
-    package=$1
-    if pip3 show "$package" > /dev/null 2>&1; then
-        return 0
-    else
-        return 1
-    fi
+    pip3 show "$1" &>/dev/null
 }
 
+# Instalasi Dependensi
 install_dependencies() {
-    echo -e "\n\033[33mUpdating package lists...\033[0m"
-    echo -e "\n\033[32mInstalling dependencies...\033[0m"
+    echo -e "${YELLOW}\nMemperbarui daftar paket...${RESET}"
+    apt update -y &>/dev/null & progress_bar $!
+    echo -e "${GREEN}\nMenginstal dependensi...${RESET}"
     TEMP_DIR="$(mktemp)"
-    
-    total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/bash.txt")
-    current_package=0
+
     while IFS= read -r package; do
-        ((current_package++))
         if ! is_installed "$package"; then
-            echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-            progress_bar $! "Installing $package" $TEMP_DIR
-            pkg install "$package" -y >$TEMP_DIR 2>&1
+            echo -e "${YELLOW}Menginstal: $package${RESET}"
+            pkg install -y "$package" &>"$TEMP_DIR" & progress_bar $!
         fi
     done < "$HOME/Termux-Custom/requirements/bash.txt"
 
-    total_packages=$(wc -l < "$HOME/Termux-Custom/requirements/python.txt")
-    current_package=0
     while IFS= read -r package; do
-        ((current_package++))
         if ! is_python_installed "$package"; then
-            echo -e "\033[33mInstalling: $package ($current_package/$total_packages)...\033[0m"
-            progress_bar $! "Installing $package" $TEMP_DIR
-            pip3 install "$package" >$TEMP_DIR 2>&1
+            echo -e "${YELLOW}Menginstal: $package (Python)${RESET}"
+            pip3 install "$package" &>"$TEMP_DIR" & progress_bar $!
         fi
     done < "$HOME/Termux-Custom/requirements/python.txt"
 }
 
+# Setup File dan Izin Eksekusi
 setup_files() {
-    echo -e "\n\033[32mSetting up files and permissions...\033[0m"
-    total_files=$(ls -1 "$HOME/Termux-Custom/"*.sh | wc -l)
-    current_file=0
-
-    for file in $HOME/Termux-Custom/*.sh; do
-        ((current_file++))
-        filename=$(basename "$file" .sh)
-        echo -e "\033[33mCopying: $filename ($current_file/$total_files)...\033[0m"
-        cp "$file" "$PREFIX/etc/$filename"
-        chmod +x "$PREFIX/etc/$filename"
+    echo -e "${GREEN}\nMenyiapkan file dan izin...${RESET}"
+    for file in "$HOME/Termux-Custom/"*.sh; do
+        [ -f "$file" ] || continue
+        filename="$(basename "$file")"
+        echo -e "${YELLOW}Menyalin: $filename${RESET}"
+        cp "$file" "$PREFIX/bin/$filename"
+        chmod +x "$PREFIX/bin/$filename"
     done
-
-    echo -e "\033[32mAll scripts have been copied and made executable.\033[0m"
+    echo -e "${GREEN}Semua skrip telah disalin dan dibuat dapat dieksekusi.${RESET}"
 }
 
 clear
-echo -e "\033[32m{──────────────────────────────────────────────}"
-echo -e "\033[33mInstalling All Required Packages! Please Wait...\033[0m"
+cat << EOF
+${GREEN}──────────────────────────────────────────────${RESET}
+${YELLOW}Memulai instalasi dependensi, harap tunggu...${RESET}
+EOF
+
 install_dependencies
 setup_files
 
-echo -e "\033[31mINSTALLATION COMPLETED \033[32m[\033[36m✓\033[32m]\033[0m"
-echo -e "\033[33m]────────────────────────────────────────────["
+echo -e "${RED}INSTALASI SELESAI ${GREEN}[✓]${RESET}"
+echo -e "${YELLOW}──────────────────────────────────────────────${RESET}"
 
 termux-setup-storage
 
-read -p "Do you want to update the repository now? (y/n): " choice
-if [ "$choice" = "y" ]; then
-    update_repository
-fi
+read -p "Apakah Anda ingin memperbarui repositori sekarang? (y/n): " choice
+[[ "$choice" == "y" ]] && apt upgrade -y
 
 bash login.sh
