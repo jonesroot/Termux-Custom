@@ -38,23 +38,30 @@ is_python_installed() {
 
 # Instalasi Dependensi
 install_dependencies() {
-    echo -e "${YELLOW}\nMemperbarui daftar paket...${RESET}"
-    apt update -y &>/dev/null & progress_bar $!
-    echo -e "${GREEN}\nMenginstal dependensi...${RESET}"
-    TEMP_DIR="$(mktemp)"
+    local TEMP_DIR="$(mktemp)"
+
+    echo -e "${YELLOW}\nMemperbarui daftar paket ..${RESET}"
+    apt update -y &>${TEMP_DIR} & progress_bar $!
+    echo -e "${GREEN}\nMenginstal dependensi ..${RESET}"
 
     while IFS= read -r package; do
         if ! is_installed "$package"; then
-            echo -e "${YELLOW}Menginstal: $package${RESET}"
+            echo -e "${HIDE_CURSOR}"
+            echo -e "${YELLOW}Menginstal: ${package}${RESET}"
             pkg install -y "$package" &>"$TEMP_DIR" & progress_bar $!
+            clear
         fi
+    echo -e "${SHOW_CURSOR}${RESET}"
     done < "$HOME/Termux-Custom/requirements/bash.txt"
 
     while IFS= read -r package; do
         if ! is_python_installed "$package"; then
+            echo -e "${HIDE_CURSOR}"
             echo -e "${YELLOW}Menginstal: $package (Python)${RESET}"
             pip3 install "$package" &>"$TEMP_DIR" & progress_bar $!
+            clear
         fi
+    echo -e "${SHOW_CURSOR}${RESET}"
     done < "$HOME/Termux-Custom/requirements/python.txt"
 }
 
@@ -63,10 +70,13 @@ setup_files() {
     echo -e "${GREEN}\nMenyiapkan file dan izin...${RESET}"
     for file in "$HOME/Termux-Custom/"*.sh; do
         [ -f "$file" ] || continue
-        filename="$(basename $file .sh)"
-        echo -e "${YELLOW}Menyalin: $filename${RESET}"
+        echo -e "${HIDE_CURSOR}"
+        filebasename="$(basename $file)"
+        filename="${filename%.*}"
+        echo -e "${YELLOW}Menyalin: ${filebasename} to ${PREFIX}/bin/${filename}${RESET}"
         cp "$file" "$PREFIX/bin/$filename"
         chmod +x "$PREFIX/bin/$filename"
+    echo -e "${SHOW_CURSOR}${RESET}"
     done
     echo -e "${GREEN}Semua skrip telah disalin dan dibuat dapat dieksekusi.${RESET}"
 }
@@ -74,10 +84,18 @@ setup_files() {
 clear
 echo -e "${GREEN}──────────────────────────────────────────────${RESET}"
 echo -e "${YELLOW}Memulai instalasi dependensi, harap tunggu...${RESET}"
+sleep 2
+clear
 install_dependencies
+sleep 2
+clear
 setup_files
+sleep 2
+clear
 echo -e "${RED}INSTALASI SELESAI ${GREEN}[✓]${RESET}"
 echo -e "${YELLOW}──────────────────────────────────────────────${RESET}"
+sleep 2
+clear
 
 termux-setup-storage
 
